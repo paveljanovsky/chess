@@ -65,13 +65,14 @@ public final class ChessState {
 
         if (chessBoard.peek(chessMove.getFromChessSquare()) != chessMove.getChessPiece()) {
             throw new InvalidChessMoveException(
-                    String.format("Invalid chess move. Trying to move [%s], but found [%s].",
-                            chessMove.getChessPiece(), chessBoard.peek(chessMove.getFromChessSquare())));
+                    String.format("Invalid chess move. Trying to move [%s], but found [%s].", chessMove.getChessPiece(),
+                            chessBoard.peek(chessMove.getFromChessSquare())));
         }
         chessBoard.remove(chessMove.getFromChessSquare());
         ChessPiece targetChessPiece = chessBoard.peek(chessMove.getToChessSquare());
         if (targetChessPiece != null) {
-            if (targetChessPiece.isWhite() ^ chessMove.getChessPiece().isWhite()) {
+            if ((targetChessPiece.isWhite() && chessMove.getChessPiece().isWhite())
+                    || (!targetChessPiece.isWhite() && !chessMove.getChessPiece().isWhite())) {
                 throw new InvalidChessMoveException(
                         "Invalid chess move, target square contains piece with the same color.");
             }
@@ -98,7 +99,26 @@ public final class ChessState {
     }
 
     public String toString() {
-        return chessBoard.toString();
+        StringBuilder sb = new StringBuilder();
+        if (!whiteCapturedPieces.isEmpty()) {
+            sb.append("Captured white pieces: ");
+        }
+        for (ChessPiece piece : whiteCapturedPieces) {
+            sb.append(piece.getUnicode() + " ");
+        }
+        sb.append("\n");
+
+        sb.append(chessBoard.toString());
+
+        if (!blackCapturedPieces.isEmpty()) {
+            sb.append("Captured black pieces: ");
+        }
+        for (ChessPiece piece : blackCapturedPieces) {
+            sb.append(piece.getUnicode() + " ");
+        }
+        sb.append("\n");
+
+        return sb.toString();
     }
 
     private ChessState(ChessBoard chessBoard, ArrayList<ChessPiece> whiteCapturedPieces,
