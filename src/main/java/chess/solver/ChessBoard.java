@@ -7,26 +7,41 @@ public final class ChessBoard {
         chessBoard = new ChessPiece[Constants.CHESS_BOARD_SIZE][Constants.CHESS_BOARD_SIZE];
     }
 
-    public void put(char column, int row, ChessPiece chessPiece) {
-        chessBoard[row - 1][(int) column - (int)'a'] = chessPiece;
+    public ChessBoard(ChessBoard otherChessBoard) {
+        chessBoard = new ChessPiece[Constants.CHESS_BOARD_SIZE][Constants.CHESS_BOARD_SIZE];
+        for (int i = 0; i < Constants.CHESS_BOARD_SIZE; i++) {
+            for (int j = 0; j < Constants.CHESS_BOARD_SIZE; j++) {
+                chessBoard[i][j] = otherChessBoard.chessBoard[i][j];
+            }
+        }
     }
 
-    public ChessPiece peek(char column, int row) {
-        return chessBoard[row - 1][(int) column - (int)'a'];
+    public void put(ChessSquare chessSquare, ChessPiece chessPiece) {
+        chessBoard[chessSquare.getRow() - 1][(int) chessSquare.getColumn() - (int)'a'] = chessPiece;
+    }
+
+    public void remove(ChessSquare chessSquare) {
+        chessBoard[chessSquare.getRow() - 1][(int) chessSquare.getColumn() - (int)'a'] = null;
+    }
+
+    public ChessPiece peek(ChessSquare chessSquare) {
+        return chessBoard[chessSquare.getRow() - 1][(int) chessSquare.getColumn() - (int)'a'];
     } 
 
-    public void print() {
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
         for (int i = Constants.CHESS_BOARD_SIZE - 1; i >= 0; i--) {
             for (int j = 0; j < Constants.CHESS_BOARD_SIZE; j++) {
                 if (chessBoard[i][j] != null) {
-                  System.out.print(chessBoard[i][j].getCode() + " ");
+                  sb.append(chessBoard[i][j].getUnicode() + " ");
                 } else {
-                  System.out.print("-- ");
+                  sb.append("o ");
 
                 }
             }    
-            System.out.println();
+            sb.append("\n");
         }
+        return sb.toString();
     }
 
 }

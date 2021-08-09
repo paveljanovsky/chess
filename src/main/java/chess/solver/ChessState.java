@@ -1,6 +1,9 @@
 package chess.solver;
 
 import static chess.solver.Constants.CHESS_BOARD_SIZE;
+
+import java.util.ArrayList;
+
 import static chess.solver.ChessPiece.BLACK_BISHOP;
 import static chess.solver.ChessPiece.BLACK_KING;
 import static chess.solver.ChessPiece.BLACK_KNIGHT;
@@ -17,36 +20,38 @@ import static chess.solver.ChessPiece.WHITE_ROOK;
 public final class ChessState {
 
     final ChessBoard chessBoard;
-    
+    final ArrayList<ChessPiece> whiteCapturedPieces;
+    final ArrayList<ChessPiece> blackCapturedPieces;
+
     public static ChessState initialChessState() {
         ChessBoard chessBoard = new ChessBoard();
-        for (int i = 0; i < CHESS_BOARD_SIZE; i ++) {
-            chessBoard.put((char)((int)'a' + i), 2, WHITE_PAWN);
-            chessBoard.put((char)((int)'a' + i), 7, BLACK_PAWN);
+        for (int i = 0; i < CHESS_BOARD_SIZE; i++) {
+            chessBoard.put(new ChessSquare((char) ((int) 'a' + i), 2), WHITE_PAWN);
+            chessBoard.put(new ChessSquare((char) ((int) 'a' + i), 7), BLACK_PAWN);
         }
 
-        chessBoard.put('a',1, WHITE_ROOK);
-        chessBoard.put('h',1, WHITE_ROOK);
-        chessBoard.put('a',8, BLACK_ROOK);
-        chessBoard.put('h',8, BLACK_ROOK);
+        chessBoard.put(new ChessSquare('a', 1), WHITE_ROOK);
+        chessBoard.put(new ChessSquare('h', 1), WHITE_ROOK);
+        chessBoard.put(new ChessSquare('a', 8), BLACK_ROOK);
+        chessBoard.put(new ChessSquare('h', 8), BLACK_ROOK);
 
-        chessBoard.put('b',1, WHITE_KNIGHT);
-        chessBoard.put('g',1, WHITE_KNIGHT);
-        chessBoard.put('b',8, BLACK_KNIGHT);
-        chessBoard.put('g',8, BLACK_KNIGHT);
+        chessBoard.put(new ChessSquare('b', 1), WHITE_KNIGHT);
+        chessBoard.put(new ChessSquare('g', 1), WHITE_KNIGHT);
+        chessBoard.put(new ChessSquare('b', 8), BLACK_KNIGHT);
+        chessBoard.put(new ChessSquare('g', 8), BLACK_KNIGHT);
 
-        chessBoard.put('c',1, WHITE_BISHOP);
-        chessBoard.put('f',1, WHITE_BISHOP);
-        chessBoard.put('c',8, BLACK_BISHOP);
-        chessBoard.put('f',8, BLACK_BISHOP);
+        chessBoard.put(new ChessSquare('c', 1), WHITE_BISHOP);
+        chessBoard.put(new ChessSquare('f', 1), WHITE_BISHOP);
+        chessBoard.put(new ChessSquare('c', 8), BLACK_BISHOP);
+        chessBoard.put(new ChessSquare('f', 8), BLACK_BISHOP);
 
-        chessBoard.put('d',1, WHITE_QUEEN);
-        chessBoard.put('d',8, BLACK_QUEEN);
+        chessBoard.put(new ChessSquare('d', 1), WHITE_QUEEN);
+        chessBoard.put(new ChessSquare('d', 8), BLACK_QUEEN);
 
-        chessBoard.put('e',1, WHITE_KING);
-        chessBoard.put('e',8, BLACK_KING);
+        chessBoard.put(new ChessSquare('e', 1), WHITE_KING);
+        chessBoard.put(new ChessSquare('e', 8), BLACK_KING);
 
-        return new ChessState(chessBoard);
+        return new ChessState(chessBoard, new ArrayList<>(), new ArrayList<>());
     }
 
     public static ChessState fromStorageRepresentation(String storageRepresentation) {
@@ -54,14 +59,52 @@ public final class ChessState {
     }
 
     public static ChessState fromParentChessState(ChessState parentChessState, ChessMove chessMove) {
-        return null;
+        ChessBoard chessBoard = new ChessBoard(parentChessState.getChessBoard());
+        ArrayList<ChessPiece> whiteCapturedPieces = new ArrayList<>(parentChessState.getWhiteCapturedPieces());
+        ArrayList<ChessPiece> blackCapturedPieces = new ArrayList<>(parentChessState.getBlackCapturedPieces());
+
+        if (chessBoard.peek(chessMove.getFromChessSquare()) != chessMove.getChessPiece()) {
+            throw new InvalidChessMoveException(
+                    String.format("Invalid chess move. Trying to move [%s], but found [%s].",
+                            chessMove.getChessPiece(), chessBoard.peek(chessMove.getFromChessSquare())));
+        }
+        chessBoard.remove(chessMove.getFromChessSquare());
+        ChessPiece targetChessPiece = chessBoard.peek(chessMove.getToChessSquare());
+        if (targetChessPiece != null) {
+            if (targetChessPiece.isWhite() ^ chessMove.getChessPiece().isWhite()) {
+                throw new InvalidChessMoveException(
+                        "Invalid chess move, target square contains piece with the same color.");
+            }
+            if (targetChessPiece.isWhite()) {
+                whiteCapturedPieces.add(targetChessPiece);
+            } else {
+                blackCapturedPieces.add(targetChessPiece);
+            }
+        }
+        chessBoard.put(chessMove.getToChessSquare(), chessMove.getChessPiece());
+        return new ChessState(chessBoard, whiteCapturedPieces, blackCapturedPieces);
     }
 
-    public void print() {
-        chessBoard.print();
+    public ChessBoard getChessBoard() {
+        return chessBoard;
     }
 
-    private ChessState(ChessBoard chessBoard) {
+    public ArrayList<ChessPiece> getWhiteCapturedPieces() {
+        return whiteCapturedPieces;
+    }
+
+    public ArrayList<ChessPiece> getBlackCapturedPieces() {
+        return blackCapturedPieces;
+    }
+
+    public String toString() {
+        return chessBoard.toString();
+    }
+
+    private ChessState(ChessBoard chessBoard, ArrayList<ChessPiece> whiteCapturedPieces,
+            ArrayList<ChessPiece> blackCapturedPieces) {
         this.chessBoard = chessBoard;
+        this.whiteCapturedPieces = whiteCapturedPieces;
+        this.blackCapturedPieces = blackCapturedPieces;
     }
 }
