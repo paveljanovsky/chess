@@ -69,12 +69,12 @@ public final class ChessState {
         Optional<ChessPiece> chessPiece = chessBoard.peek(chessMove.getFromChessSquare());
         if (!chessPiece.isPresent()) {
             throw new InvalidChessMoveException(
-                String.format("Invalid chess move. Trying to move [%s], but found empty square.", chessMove.getChessPiece()
-                        ));
+                    String.format("Invalid chess move. Trying to move [%s], but found empty square at [%s].",
+                            chessMove.getChessPiece(), chessMove.getFromChessSquare()));
         } else if (chessPiece.get() != chessMove.getChessPiece()) {
             throw new InvalidChessMoveException(
-                    String.format("Invalid chess move. Trying to move [%s], but found [%s].", chessMove.getChessPiece(),
-                    chessPiece.get()));
+                    String.format("Invalid chess move. Trying to move [%s], but found [%s] at [%s].",
+                            chessMove.getChessPiece(), chessPiece.get(), chessMove.getFromChessSquare()));
         }
         chessBoard.remove(chessMove.getFromChessSquare());
         Optional<ChessPiece> optionalTargetChessPiece = chessBoard.peek(chessMove.getToChessSquare());
