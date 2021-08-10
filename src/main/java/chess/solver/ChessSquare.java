@@ -10,12 +10,25 @@ public final class ChessSquare {
         this.row = row;
     }
 
+    public ChessSquare(int rowId, int columnId) {
+        this.column = (char) ((int) 'a' + columnId);
+        this.row = rowId + 1;
+    }
+
     public char getColumn() {
         return column;
     }
 
+    public int getColumnId() {
+        return (int) column - (int) 'a';
+    }
+
     public int getRow() {
         return row;
+    }
+
+    public int getRowId() {
+        return row - 1;
     }
 
     public String toString() {

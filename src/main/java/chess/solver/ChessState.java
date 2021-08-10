@@ -3,6 +3,9 @@ package chess.solver;
 import static chess.solver.Constants.CHESS_BOARD_SIZE;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static chess.solver.ChessPiece.BLACK_BISHOP;
 import static chess.solver.ChessPiece.BLACK_KING;
@@ -63,14 +66,20 @@ public final class ChessState {
         ArrayList<ChessPiece> whiteCapturedPieces = new ArrayList<>(parentChessState.getWhiteCapturedPieces());
         ArrayList<ChessPiece> blackCapturedPieces = new ArrayList<>(parentChessState.getBlackCapturedPieces());
 
-        if (chessBoard.peek(chessMove.getFromChessSquare()) != chessMove.getChessPiece()) {
+        Optional<ChessPiece> chessPiece = chessBoard.peek(chessMove.getFromChessSquare());
+        if (!chessPiece.isPresent()) {
+            throw new InvalidChessMoveException(
+                String.format("Invalid chess move. Trying to move [%s], but found empty square.", chessMove.getChessPiece()
+                        ));
+        } else if (chessPiece.get() != chessMove.getChessPiece()) {
             throw new InvalidChessMoveException(
                     String.format("Invalid chess move. Trying to move [%s], but found [%s].", chessMove.getChessPiece(),
-                            chessBoard.peek(chessMove.getFromChessSquare())));
+                    chessPiece.get()));
         }
         chessBoard.remove(chessMove.getFromChessSquare());
-        ChessPiece targetChessPiece = chessBoard.peek(chessMove.getToChessSquare());
-        if (targetChessPiece != null) {
+        Optional<ChessPiece> optionalTargetChessPiece = chessBoard.peek(chessMove.getToChessSquare());
+        if (optionalTargetChessPiece.isPresent()) {
+            ChessPiece targetChessPiece = optionalTargetChessPiece.get();
             if ((targetChessPiece.isWhite() && chessMove.getChessPiece().isWhite())
                     || (!targetChessPiece.isWhite() && !chessMove.getChessPiece().isWhite())) {
                 throw new InvalidChessMoveException(
@@ -84,6 +93,74 @@ public final class ChessState {
         }
         chessBoard.put(chessMove.getToChessSquare(), chessMove.getChessPiece());
         return new ChessState(chessBoard, whiteCapturedPieces, blackCapturedPieces);
+    }
+
+    public ArrayList<ChessMove> getAvailableWhiteChessMoves() {
+        ArrayList<ChessMove> chessMoves = new ArrayList<>();
+        for (ChessSquare fromSquare : chessBoard.getWhitePieceLocations()) {
+            switch (chessBoard.peek(fromSquare).get()) {
+                case WHITE_PAWN:
+                    chessMoves.addAll(getPawnMoves(fromSquare, true));
+                    break;
+                case WHITE_ROOK:
+                    chessMoves.addAll(getRookMoves(fromSquare, true));
+                    break;
+                case WHITE_KNIGHT:
+                    chessMoves.addAll(getKnightMoves(fromSquare, true));
+                    break;
+                case WHITE_BISHOP:
+                    chessMoves.addAll(getBishopMoves(fromSquare, true));
+                    break;
+                case WHITE_QUEEN:
+                    chessMoves.addAll(getQueenMoves(fromSquare, true));
+                    break;
+                case WHITE_KING:
+                    chessMoves.addAll(getKingMoves(fromSquare, true));
+                    break;
+                case BLACK_PAWN:
+                case BLACK_ROOK:
+                case BLACK_KNIGHT:
+                case BLACK_BISHOP:
+                case BLACK_QUEEN:
+                case BLACK_KING:
+                    throw new AssertionError("invalid piece location.");
+            }
+        }
+        return chessMoves;
+    }
+
+    public ArrayList<ChessMove> getAvailableBlackChessMoves() {
+        ArrayList<ChessMove> chessMoves = new ArrayList<>();
+        for (ChessSquare fromSquare : chessBoard.getBlackPieceLocations()) {
+            switch (chessBoard.peek(fromSquare).get()) {
+                case WHITE_PAWN:
+                case WHITE_ROOK:
+                case WHITE_KNIGHT:
+                case WHITE_BISHOP:
+                case WHITE_QUEEN:
+                case WHITE_KING:
+                    throw new AssertionError("invalid piece location.");
+                case BLACK_PAWN:
+                    chessMoves.addAll(getPawnMoves(fromSquare, false));
+                    break;
+                case BLACK_ROOK:
+                    chessMoves.addAll(getRookMoves(fromSquare, false));
+                    break;
+                case BLACK_KNIGHT:
+                    chessMoves.addAll(getKnightMoves(fromSquare, false));
+                    break;
+                case BLACK_BISHOP:
+                    chessMoves.addAll(getBishopMoves(fromSquare, false));
+                    break;
+                case BLACK_QUEEN:
+                    chessMoves.addAll(getQueenMoves(fromSquare, false));
+                    break;
+                case BLACK_KING:
+                    chessMoves.addAll(getKingMoves(fromSquare, false));
+                    break;
+            }
+        }
+        return chessMoves;
     }
 
     public ChessBoard getChessBoard() {
@@ -119,6 +196,184 @@ public final class ChessState {
         sb.append("\n");
 
         return sb.toString();
+    }
+
+    private ArrayList<ChessMove> getPawnMoves(ChessSquare fromSquare, boolean isWhite) {
+        ChessPiece chessPiece = isWhite ? WHITE_PAWN : BLACK_PAWN;
+        int rowId = fromSquare.getRowId();
+        int columnId = fromSquare.getColumnId();
+        ArrayList<ChessMove> chessMoves = new ArrayList<>();
+        ChessSquare twoUp = new ChessSquare(isWhite ? 3 : 4, columnId);
+        ChessSquare oneUp = new ChessSquare(isWhite ? rowId + 1 : rowId - 1, columnId);
+        ChessSquare upLeft = new ChessSquare(isWhite ? rowId + 1 : rowId - 1, isWhite ? columnId - 1 : columnId + 1);
+        ChessSquare upRight = new ChessSquare(isWhite ? rowId + 1 : rowId - 1, isWhite ? columnId + 1 : columnId - 1);
+        // TODO add En passant capture
+        if (((isWhite && fromSquare.getRow() == 1) || (!isWhite && fromSquare.getRow() == 6))
+                && chessBoard.isAvailable(twoUp)) {
+            chessMoves.add(new ChessMove(chessPiece, fromSquare, twoUp));
+        }
+        if (chessBoard.isAvailable(oneUp)) {
+            chessMoves.add(new ChessMove(chessPiece, fromSquare, oneUp));
+        }
+        if (chessBoard.isTarget(upLeft, isWhite)) {
+            chessMoves.add(new ChessMove(chessPiece, fromSquare, upLeft));
+        }
+        if (chessBoard.isTarget(upRight, isWhite)) {
+            chessMoves.add(new ChessMove(chessPiece, fromSquare, upRight));
+        }
+        return chessMoves;
+    }
+
+    private List<ChessMove> getRookMoves(ChessSquare fromSquare, boolean isWhite) {
+        ChessPiece chessPiece = isWhite ? WHITE_ROOK : BLACK_ROOK;
+        int rowId = fromSquare.getRowId();
+        int columnId = fromSquare.getColumnId();
+        ArrayList<ChessSquare> possibleSquares = new ArrayList<>();
+        int currentRowId = rowId + 1;
+        int currentColumnId = columnId;
+        while (inBounds(currentRowId, currentColumnId)) {
+            ChessSquare toSquare = new ChessSquare(currentRowId, currentColumnId);
+            possibleSquares.add(toSquare);
+            if (!chessBoard.isAvailable(toSquare)) {
+                break;
+            }
+            currentRowId++;
+        }
+        currentRowId = rowId - 1;
+        currentColumnId = columnId;
+        while (inBounds(currentRowId, currentColumnId)) {
+            ChessSquare toSquare = new ChessSquare(currentRowId, currentColumnId);
+            possibleSquares.add(toSquare);
+            if (!chessBoard.isAvailable(toSquare)) {
+                break;
+            }
+            currentRowId--;
+        }
+        currentRowId = rowId;
+        currentColumnId = columnId + 1;
+        while (inBounds(currentRowId, currentColumnId)) {
+            ChessSquare toSquare = new ChessSquare(currentRowId, currentColumnId);
+            possibleSquares.add(toSquare);
+            if (!chessBoard.isAvailable(toSquare)) {
+                break;
+            }
+            currentColumnId++;
+        }
+        currentRowId = rowId;
+        currentColumnId = columnId - 1;
+        while (inBounds(currentRowId, currentColumnId)) {
+            ChessSquare toSquare = new ChessSquare(currentRowId, currentColumnId);
+            possibleSquares.add(toSquare);
+            if (!chessBoard.isAvailable(toSquare)) {
+                break;
+            }
+            currentColumnId--;
+        }
+        return filterPossibleChessSquares(possibleSquares, fromSquare, chessPiece, isWhite);
+    }
+
+    private List<ChessMove> getKnightMoves(ChessSquare fromSquare, boolean isWhite) {
+        ChessPiece chessPiece = isWhite ? WHITE_KNIGHT : BLACK_KNIGHT;
+        int rowId = fromSquare.getRowId();
+        int columnId = fromSquare.getColumnId();
+        ArrayList<ChessSquare> possibleSquares = new ArrayList<>(8);
+        possibleSquares.add(new ChessSquare(rowId + 2, columnId + 1));
+        possibleSquares.add(new ChessSquare(rowId + 2, columnId - 1));
+        possibleSquares.add(new ChessSquare(rowId - 2, columnId + 1));
+        possibleSquares.add(new ChessSquare(rowId - 2, columnId - 1));
+        possibleSquares.add(new ChessSquare(rowId + 1, columnId + 2));
+        possibleSquares.add(new ChessSquare(rowId - 1, columnId + 2));
+        possibleSquares.add(new ChessSquare(rowId + 1, columnId - 2));
+        possibleSquares.add(new ChessSquare(rowId - 1, columnId - 2));
+        return filterPossibleChessSquares(possibleSquares, fromSquare, chessPiece, isWhite);
+    }
+
+    private List<ChessMove> getBishopMoves(ChessSquare fromSquare, boolean isWhite) {
+        ChessPiece chessPiece = isWhite ? WHITE_BISHOP : BLACK_BISHOP;
+        int rowId = fromSquare.getRowId();
+        int columnId = fromSquare.getColumnId();
+        ArrayList<ChessSquare> possibleSquares = new ArrayList<>();
+        int currentRowId = rowId + 1;
+        int currentColumnId = columnId + 1;
+        while (inBounds(currentRowId, currentColumnId)) {
+            ChessSquare toSquare = new ChessSquare(currentRowId, currentColumnId);
+            possibleSquares.add(toSquare);
+            if (!chessBoard.isAvailable(toSquare)) {
+                break;
+            }
+            currentRowId++;
+            currentColumnId++;
+        }
+        currentRowId = rowId + 1;
+        currentColumnId = columnId - 1;
+        while (inBounds(currentRowId, currentColumnId)) {
+            ChessSquare toSquare = new ChessSquare(currentRowId, currentColumnId);
+            possibleSquares.add(toSquare);
+            if (!chessBoard.isAvailable(toSquare)) {
+                break;
+            }
+            currentRowId++;
+            currentColumnId--;
+        }
+        currentRowId = rowId - 1;
+        currentColumnId = columnId + 1;
+        while (inBounds(currentRowId, currentColumnId)) {
+            ChessSquare toSquare = new ChessSquare(currentRowId, currentColumnId);
+            possibleSquares.add(toSquare);
+            if (!chessBoard.isAvailable(toSquare)) {
+                break;
+            }
+            currentRowId--;
+            currentColumnId++;
+        }
+        currentRowId = rowId - 1;
+        currentColumnId = columnId - 1;
+        while (inBounds(currentRowId, currentColumnId)) {
+            ChessSquare toSquare = new ChessSquare(currentRowId, currentColumnId);
+            possibleSquares.add(toSquare);
+            if (!chessBoard.isAvailable(toSquare)) {
+                break;
+            }
+            currentRowId--;
+            currentColumnId--;
+        }
+        return filterPossibleChessSquares(possibleSquares, fromSquare, chessPiece, isWhite);
+    }
+
+    private List<ChessMove> getQueenMoves(ChessSquare fromSquare, boolean isWhite) {
+        ChessPiece chessPiece = isWhite ? WHITE_QUEEN : BLACK_QUEEN;
+        ArrayList<ChessMove> chessMoves = new ArrayList<>();
+        chessMoves.addAll(getRookMoves(fromSquare, isWhite));
+        chessMoves.addAll(getBishopMoves(fromSquare, isWhite));
+        return chessMoves.stream()
+                .map(move -> new ChessMove(chessPiece, move.getFromChessSquare(), move.getToChessSquare()))
+                .collect(Collectors.toList());
+    }
+
+    private List<ChessMove> getKingMoves(ChessSquare fromSquare, boolean isWhite) {
+        ChessPiece chessPiece = isWhite ? WHITE_KING : BLACK_KING;
+        int rowId = fromSquare.getRowId();
+        int columnId = fromSquare.getColumnId();
+        ArrayList<ChessSquare> possibleSquares = new ArrayList<>(6);
+        possibleSquares.add(new ChessSquare(rowId + 1, columnId));
+        possibleSquares.add(new ChessSquare(rowId - 1, columnId));
+        possibleSquares.add(new ChessSquare(rowId, columnId + 1));
+        possibleSquares.add(new ChessSquare(rowId, columnId - 1));
+        possibleSquares.add(new ChessSquare(rowId + 1, columnId + 1));
+        possibleSquares.add(new ChessSquare(rowId + 1, columnId - 1));
+        possibleSquares.add(new ChessSquare(rowId - 1, columnId + 1));
+        possibleSquares.add(new ChessSquare(rowId - 1, columnId - 1));
+        return filterPossibleChessSquares(possibleSquares, fromSquare, chessPiece, isWhite);
+    }
+
+    private List<ChessMove> filterPossibleChessSquares(ArrayList<ChessSquare> possibleSquares, ChessSquare fromSquare,
+            ChessPiece chessPiece, boolean isWhite) {
+        return possibleSquares.stream().filter(square -> chessBoard.isAvailableOrTarget(square, isWhite))
+                .map(square -> new ChessMove(chessPiece, fromSquare, square)).collect(Collectors.toList());
+    }
+
+    private static boolean inBounds(int rowId, int columnId) {
+        return rowId >= 0 && rowId < CHESS_BOARD_SIZE && columnId >= 0 && columnId < CHESS_BOARD_SIZE;
     }
 
     private ChessState(ChessBoard chessBoard, ArrayList<ChessPiece> whiteCapturedPieces,
