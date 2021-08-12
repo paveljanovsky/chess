@@ -104,11 +104,15 @@ public final class ChessState {
     }
 
     public ArrayList<ChessMove> getAvailableWhiteChessMoves() {
+        return getAvailableWhiteChessMoves(false);
+    }
+
+    public ArrayList<ChessMove> getAvailableWhiteChessMoves(boolean captureMoves) {
         ArrayList<ChessMove> chessMoves = new ArrayList<>();
         for (ChessSquare fromSquare : chessBoard.getWhitePieceLocations()) {
             switch (chessBoard.peek(fromSquare).get()) {
                 case WHITE_PAWN:
-                    chessMoves.addAll(getPawnMoves(fromSquare, true));
+                    chessMoves.addAll(getPawnMoves(fromSquare, true, captureMoves));
                     break;
                 case WHITE_ROOK:
                     chessMoves.addAll(getRookMoves(fromSquare, true));
@@ -123,7 +127,7 @@ public final class ChessState {
                     chessMoves.addAll(getQueenMoves(fromSquare, true));
                     break;
                 case WHITE_KING:
-                    chessMoves.addAll(getKingMoves(fromSquare, true));
+                    chessMoves.addAll(getKingMoves(fromSquare, true, captureMoves));
                     break;
                 case BLACK_PAWN:
                 case BLACK_ROOK:
@@ -138,6 +142,10 @@ public final class ChessState {
     }
 
     public ArrayList<ChessMove> getAvailableBlackChessMoves() {
+        return getAvailableBlackChessMoves(false);
+    }
+
+    public ArrayList<ChessMove> getAvailableBlackChessMoves(boolean captureMoves) {
         ArrayList<ChessMove> chessMoves = new ArrayList<>();
         for (ChessSquare fromSquare : chessBoard.getBlackPieceLocations()) {
             switch (chessBoard.peek(fromSquare).get()) {
@@ -149,7 +157,7 @@ public final class ChessState {
                 case WHITE_KING:
                     throw new AssertionError("invalid piece location.");
                 case BLACK_PAWN:
-                    chessMoves.addAll(getPawnMoves(fromSquare, false));
+                    chessMoves.addAll(getPawnMoves(fromSquare, false, captureMoves));
                     break;
                 case BLACK_ROOK:
                     chessMoves.addAll(getRookMoves(fromSquare, false));
@@ -164,7 +172,7 @@ public final class ChessState {
                     chessMoves.addAll(getQueenMoves(fromSquare, false));
                     break;
                 case BLACK_KING:
-                    chessMoves.addAll(getKingMoves(fromSquare, false));
+                    chessMoves.addAll(getKingMoves(fromSquare, false, captureMoves));
                     break;
             }
         }
@@ -206,7 +214,12 @@ public final class ChessState {
         return sb.toString();
     }
 
-    private ArrayList<ChessMove> getPawnMoves(ChessSquare fromSquare, boolean isWhite) {
+    /**
+     * @param captureMoves if true, a pawn can only move to a capturing square. Used
+     *                     to determine whether a square is safe for a king to move
+     *                     to.
+     */
+    private ArrayList<ChessMove> getPawnMoves(ChessSquare fromSquare, boolean isWhite, boolean captureMoves) {
         ChessPiece chessPiece = isWhite ? WHITE_PAWN : BLACK_PAWN;
         int rowId = fromSquare.getRowId();
         int columnId = fromSquare.getColumnId();
@@ -216,18 +229,17 @@ public final class ChessState {
         ChessSquare upLeft = new ChessSquare(isWhite ? rowId - 1 : rowId + 1, isWhite ? columnId - 1 : columnId + 1);
         ChessSquare upRight = new ChessSquare(isWhite ? rowId - 1 : rowId + 1, isWhite ? columnId + 1 : columnId - 1);
         // TODO add En passant capture
-        if (((isWhite && fromSquare.getRowId() == 6) || (!isWhite && fromSquare.getRowId() == 1))
-        && chessBoard.isAvailable(oneUp)        
-        && chessBoard.isAvailable(twoUp)) {
+        if ((((isWhite && fromSquare.getRowId() == 6) || (!isWhite && fromSquare.getRowId() == 1)) && !captureMoves)
+                && chessBoard.isAvailable(oneUp) && chessBoard.isAvailable(twoUp)) {
             chessMoves.add(new ChessMove(chessPiece, fromSquare, twoUp));
         }
-        if (chessBoard.isAvailable(oneUp)) {
+        if (chessBoard.isAvailable(oneUp) && !captureMoves) {
             chessMoves.add(new ChessMove(chessPiece, fromSquare, oneUp));
         }
-        if (chessBoard.isTarget(upLeft, isWhite)) {
+        if (chessBoard.isTarget(upLeft, isWhite) || captureMoves) {
             chessMoves.add(new ChessMove(chessPiece, fromSquare, upLeft));
         }
-        if (chessBoard.isTarget(upRight, isWhite)) {
+        if (chessBoard.isTarget(upRight, isWhite) || captureMoves) {
             chessMoves.add(new ChessMove(chessPiece, fromSquare, upRight));
         }
         return chessMoves;
@@ -359,7 +371,11 @@ public final class ChessState {
                 .collect(Collectors.toList());
     }
 
-    private List<ChessMove> getKingMoves(ChessSquare fromSquare, boolean isWhite) {
+    /**
+     * @param captureMoves if true, returns all unoccupied squares around the king,
+     *                     no matter if they are targeted.
+     */
+    private List<ChessMove> getKingMoves(ChessSquare fromSquare, boolean isWhite, boolean captureMoves) {
         ChessPiece chessPiece = isWhite ? WHITE_KING : BLACK_KING;
         int rowId = fromSquare.getRowId();
         int columnId = fromSquare.getColumnId();
@@ -372,10 +388,12 @@ public final class ChessState {
         possibleSquares.add(new ChessSquare(rowId + 1, columnId - 1));
         possibleSquares.add(new ChessSquare(rowId - 1, columnId + 1));
         possibleSquares.add(new ChessSquare(rowId - 1, columnId - 1));
-        return filterPossibleChessSquares(possibleSquares, fromSquare, chessPiece, isWhite);
+        List<ChessSquare> safeSquares = captureMoves ? possibleSquares
+                : possibleSquares.stream().filter(square -> !isTargeted(square, isWhite)).collect(Collectors.toList());
+        return filterPossibleChessSquares(safeSquares, fromSquare, chessPiece, isWhite);
     }
 
-    private List<ChessMove> filterPossibleChessSquares(ArrayList<ChessSquare> possibleSquares, ChessSquare fromSquare,
+    private List<ChessMove> filterPossibleChessSquares(List<ChessSquare> possibleSquares, ChessSquare fromSquare,
             ChessPiece chessPiece, boolean isWhite) {
         return possibleSquares.stream().filter(square -> chessBoard.isAvailableOrTarget(square, isWhite))
                 .map(square -> new ChessMove(chessPiece, fromSquare, square)).collect(Collectors.toList());
@@ -383,6 +401,15 @@ public final class ChessState {
 
     private static boolean inBounds(int rowId, int columnId) {
         return rowId >= 0 && rowId < CHESS_BOARD_SIZE && columnId >= 0 && columnId < CHESS_BOARD_SIZE;
+    }
+
+    /**
+     * Returns true if the square is targeted by a piece of the other color.
+     */
+    public boolean isTargeted(ChessSquare chessSquare, boolean isWhite) {
+        ArrayList<ChessMove> allPosibleOpponentMoves = isWhite ? getAvailableBlackChessMoves(true)
+                : getAvailableWhiteChessMoves(true);
+        return allPosibleOpponentMoves.stream().anyMatch(move -> move.getToChessSquare().equals(chessSquare));
     }
 
     private ChessState(ChessBoard chessBoard, ArrayList<ChessPiece> whiteCapturedPieces,

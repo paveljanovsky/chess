@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static chess.solver.ChessPiece.BLACK_KNIGHT;
 import static chess.solver.ChessPiece.BLACK_PAWN;
+import static chess.solver.ChessPiece.WHITE_KING;
 import static chess.solver.ChessPiece.WHITE_KNIGHT;
 import static chess.solver.ChessPiece.WHITE_PAWN;
 import static chess.solver.ChessPiece.WHITE_QUEEN;
@@ -84,9 +85,10 @@ public class ChessStateTest {
         setupMoves.add(new ChessMove(WHITE_PAWN, null, new ChessSquare('d', 4)));
         setupMoves.add(new ChessMove(BLACK_PAWN, null, new ChessSquare('e', 5)));
         setupMoves.add(new ChessMove(BLACK_PAWN, null, new ChessSquare('d', 5)));
+        setupMoves.add(new ChessMove(BLACK_PAWN, null, new ChessSquare('b', 8)));
         setupMoves.add(new ChessMove(WHITE_QUEEN, null, new ChessSquare('e', 3)));
         setupMoves.add(new ChessMove(WHITE_KNIGHT, null, new ChessSquare('g', 4)));
-        // TODO test king moves
+        setupMoves.add(new ChessMove(WHITE_KING, null, new ChessSquare('b', 7)));
 
         ChessState chessState = ChessState.fromChessMoves(setupMoves);
         System.err.println(chessState);
@@ -117,6 +119,12 @@ public class ChessStateTest {
         expectedMoves.add(new ChessMove(WHITE_QUEEN, new ChessSquare('e', 3), new ChessSquare('f', 4)));
         expectedMoves.add(new ChessMove(WHITE_QUEEN, new ChessSquare('e', 3), new ChessSquare('g', 5)));
         expectedMoves.add(new ChessMove(WHITE_QUEEN, new ChessSquare('e', 3), new ChessSquare('h', 6)));
+        expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('b', 8)));
+        expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('a', 8)));
+        expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('c', 8)));
+        expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('a', 6)));
+        expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('b', 6)));
+        expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('c', 6)));
 
         Assertions.assertThat(chessMoves).hasSameElementsAs(expectedMoves);
     }

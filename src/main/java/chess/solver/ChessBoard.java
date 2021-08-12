@@ -84,6 +84,9 @@ public final class ChessBoard {
         return chessSquare.isInBounds() && peek(chessSquare).isEmpty();
     }
 
+    /**
+     * Returns true if the square is occupied by a piece of the other color.
+     */
     public boolean isTarget(ChessSquare chessSquare, boolean isWhite) {
         Optional<ChessPiece> target = peek(chessSquare);
         if (target.isPresent()) {
