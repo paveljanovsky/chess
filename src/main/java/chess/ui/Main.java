@@ -14,6 +14,8 @@ import static chess.solver.ChessPiece.WHITE_QUEEN;
 import static chess.solver.ChessPiece.WHITE_ROOK;
 
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.Scanner;
 
 import chess.solver.ChessMove;
 import chess.solver.ChessState;
@@ -21,7 +23,12 @@ import chess.solver.ChessSquare;
 
 public class Main {
     public static void main(String[] args) {
-        ArrayList<ChessMove> setupMoves = new ArrayList<>();
+        Scanner in = new Scanner(System.in);
+ 
+        boolean isWhite = isWhiteColor(in);
+        System.out.println("Done.");
+
+        /*ArrayList<ChessMove> setupMoves = new ArrayList<>();
         setupMoves.add(new ChessMove(WHITE_PAWN, null, new ChessSquare('d', 4)));
         setupMoves.add(new ChessMove(BLACK_PAWN, null, new ChessSquare('e', 5)));
         setupMoves.add(new ChessMove(BLACK_PAWN, null, new ChessSquare('d', 5)));
@@ -47,5 +54,17 @@ public class Main {
         System.out.println("Move: " + thirdMove);
         ChessState fourthState = ChessState.fromParentChessState(thirdState, thirdMove);
         System.out.println("Fourth state:" + fourthState);*/
+    }
+
+    private static boolean isWhiteColor(Scanner in) {
+        String input = "";
+        while (!("w".equals(input) || "b".equals(input) || "r".equals(input))) {
+            System.out.println("Select color: (w)hite, (b)lack, (r)andom:");
+            input = in.nextLine();
+        }
+        if (input == "r") {
+            return new Random().nextBoolean();
+        }
+        return input == "w";
     }
 }
