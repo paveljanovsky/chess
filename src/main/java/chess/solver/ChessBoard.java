@@ -1,5 +1,7 @@
 package chess.solver;
 
+import static chess.solver.Inputs.PRINT_PRETTY_COORDINATES;
+
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -28,16 +30,18 @@ public final class ChessBoard {
     }
 
     public Optional<ChessPiece> peek(ChessSquare chessSquare) {
-        int rowId = chessSquare.getRowId();
-        int columnId = (int) chessSquare.getColumnId();
-        return rowId >= 0 && rowId < Constants.CHESS_BOARD_SIZE && columnId >= 0
-                && columnId < Constants.CHESS_BOARD_SIZE ? Optional.ofNullable(chessBoard[rowId][columnId])
-                        : Optional.empty();
+        return chessSquare.isInBounds()
+                ? Optional.ofNullable(chessBoard[chessSquare.getRowId()][chessSquare.getColumnId()])
+                : Optional.empty();
     }
 
     public String toString() {
+        String horizontalTicks = "  a b c d e f g h\n";
         StringBuilder sb = new StringBuilder();
+        sb.append(horizontalTicks);
         for (int i = 0; i < Constants.CHESS_BOARD_SIZE; i++) {
+            String verticalTick = "" + (Constants.CHESS_BOARD_SIZE - i);
+            sb.append(verticalTick + " ");
             for (int j = 0; j < Constants.CHESS_BOARD_SIZE; j++) {
                 if (chessBoard[i][j] != null) {
                     sb.append(chessBoard[i][j].getUnicode() + " ");
@@ -46,8 +50,9 @@ public final class ChessBoard {
 
                 }
             }
-            sb.append("\n");
+            sb.append(" " + verticalTick + "\n");
         }
+        sb.append(horizontalTicks);
         return sb.toString();
     }
 
@@ -76,7 +81,7 @@ public final class ChessBoard {
     }
 
     public boolean isAvailable(ChessSquare chessSquare) {
-        return !peek(chessSquare).isEmpty();
+        return chessSquare.isInBounds() && peek(chessSquare).isEmpty();
     }
 
     public boolean isTarget(ChessSquare chessSquare, boolean isWhite) {

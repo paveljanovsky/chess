@@ -1,5 +1,7 @@
 package chess.solver;
 
+import static chess.solver.Inputs.PRINT_MOVE_START;
+
 public final class ChessMove {
 
     private final ChessPiece chessPiece;
@@ -25,7 +27,19 @@ public final class ChessMove {
     }
 
     public String toString() {
-        return chessPiece.getCode() + toChessSquare;
+        return PRINT_MOVE_START ? chessPiece.getCode() + fromChessSquare + "->" + chessPiece.getCode() + toChessSquare
+                : chessPiece.getCode() + toChessSquare;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof ChessMove 
+        && chessPiece == ((ChessMove) other).getChessPiece() 
+        && fromChessSquare.equals(((ChessMove) other).getFromChessSquare())
+        && toChessSquare.equals(((ChessMove) other).getToChessSquare());
+    }
+
+    //public Strint hashCode() {
+//
+    //}
 }

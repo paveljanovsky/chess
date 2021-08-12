@@ -95,6 +95,14 @@ public final class ChessState {
         return new ChessState(chessBoard, whiteCapturedPieces, blackCapturedPieces);
     }
 
+    public static ChessState fromChessMoves(List<ChessMove> chessMoves) {
+        ChessBoard chessBoard = new ChessBoard();
+        for (ChessMove chessMove : chessMoves) {
+            chessBoard.put(chessMove.getToChessSquare(), chessMove.getChessPiece());
+        }
+        return new ChessState(chessBoard, new ArrayList<ChessPiece>(), new ArrayList<ChessPiece>());
+    }
+
     public ArrayList<ChessMove> getAvailableWhiteChessMoves() {
         ArrayList<ChessMove> chessMoves = new ArrayList<>();
         for (ChessSquare fromSquare : chessBoard.getWhitePieceLocations()) {
@@ -203,13 +211,14 @@ public final class ChessState {
         int rowId = fromSquare.getRowId();
         int columnId = fromSquare.getColumnId();
         ArrayList<ChessMove> chessMoves = new ArrayList<>();
-        ChessSquare twoUp = new ChessSquare(isWhite ? 3 : 4, columnId);
-        ChessSquare oneUp = new ChessSquare(isWhite ? rowId + 1 : rowId - 1, columnId);
-        ChessSquare upLeft = new ChessSquare(isWhite ? rowId + 1 : rowId - 1, isWhite ? columnId - 1 : columnId + 1);
-        ChessSquare upRight = new ChessSquare(isWhite ? rowId + 1 : rowId - 1, isWhite ? columnId + 1 : columnId - 1);
+        ChessSquare twoUp = new ChessSquare(isWhite ? 4 : 3, columnId);
+        ChessSquare oneUp = new ChessSquare(isWhite ? rowId - 1 : rowId + 1, columnId);
+        ChessSquare upLeft = new ChessSquare(isWhite ? rowId - 1 : rowId + 1, isWhite ? columnId - 1 : columnId + 1);
+        ChessSquare upRight = new ChessSquare(isWhite ? rowId - 1 : rowId + 1, isWhite ? columnId + 1 : columnId - 1);
         // TODO add En passant capture
-        if (((isWhite && fromSquare.getRow() == 1) || (!isWhite && fromSquare.getRow() == 6))
-                && chessBoard.isAvailable(twoUp)) {
+        if (((isWhite && fromSquare.getRowId() == 6) || (!isWhite && fromSquare.getRowId() == 1))
+        && chessBoard.isAvailable(oneUp)        
+        && chessBoard.isAvailable(twoUp)) {
             chessMoves.add(new ChessMove(chessPiece, fromSquare, twoUp));
         }
         if (chessBoard.isAvailable(oneUp)) {

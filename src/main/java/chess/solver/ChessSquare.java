@@ -37,4 +37,14 @@ public final class ChessSquare {
         return getColumn() + "" + getRow();
     }
 
+    public boolean isInBounds() {
+        return rowId >= 0 && rowId < CHESS_BOARD_SIZE && columnId >= 0 && columnId < CHESS_BOARD_SIZE;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof ChessSquare 
+        && rowId == ((ChessSquare) other).getRowId() 
+        && columnId == ((ChessSquare) other).getColumnId();
+    }
 }
