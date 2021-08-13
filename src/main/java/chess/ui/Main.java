@@ -56,15 +56,5 @@ public class Main {
         System.out.println("Fourth state:" + fourthState);*/
     }
 
-    private static boolean isWhiteColor(Scanner in) {
-        String input = "";
-        while (!("w".equals(input) || "b".equals(input) || "r".equals(input))) {
-            System.out.println("Select color: (w)hite, (b)lack, (r)andom:");
-            input = in.nextLine();
-        }
-        if (input == "r") {
-            return new Random().nextBoolean();
-        }
-        return input == "w";
-    }
+
 }

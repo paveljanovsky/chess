@@ -2,6 +2,8 @@ package chess.solver;
 
 import static chess.solver.Inputs.PRINT_MOVE_START;
 
+import java.util.Arrays;
+
 public final class ChessMove {
 
     private final ChessPiece chessPiece;
@@ -12,6 +14,21 @@ public final class ChessMove {
         this.chessPiece = chessPiece;
         this.fromChessSquare = fromChessSquare;
         this.toChessSquare = toChessSquare;
+    }
+
+    public ChessMove(String stringRepresentation) throws InvalidChessMoveException {
+        String chessPieceCode = stringRepresentation.substring(0, 2);
+        String fromChessSquareString = stringRepresentation.substring(2, 4);
+        String toChessSquareString = stringRepresentation.substring(4, 6);
+
+        this.chessPiece = Arrays.asList(ChessPiece.values()).stream()
+                .findFirst(value -> value.getCode().equals(chessPieceCode)).get();
+        this.fromChessSquare = 
+          new ChessSquare(stringRepresentation.charAt(2), 
+              Integer.parseInt(stringRepresentation.substring(3, 4)));
+        this.toChessSquare = 
+              new ChessSquare(stringRepresentation.charAt(4), 
+                  Integer.parseInt(stringRepresentation.substring(5, 6)));
     }
 
     public ChessPiece getChessPiece() {
@@ -33,13 +50,12 @@ public final class ChessMove {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ChessMove 
-        && chessPiece == ((ChessMove) other).getChessPiece() 
-        && fromChessSquare.equals(((ChessMove) other).getFromChessSquare())
-        && toChessSquare.equals(((ChessMove) other).getToChessSquare());
+        return other instanceof ChessMove && chessPiece == ((ChessMove) other).getChessPiece()
+                && fromChessSquare.equals(((ChessMove) other).getFromChessSquare())
+                && toChessSquare.equals(((ChessMove) other).getToChessSquare());
     }
 
-    //public Strint hashCode() {
-//
-    //}
+    // public Strint hashCode() {
+    //
+    // }
 }
