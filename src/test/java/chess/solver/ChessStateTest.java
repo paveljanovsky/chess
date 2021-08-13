@@ -2,14 +2,17 @@ package chess.solver;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static chess.solver.ChessPiece.BLACK_KING;
 import static chess.solver.ChessPiece.BLACK_KNIGHT;
 import static chess.solver.ChessPiece.BLACK_PAWN;
+import static chess.solver.ChessPiece.BLACK_ROOK;
 import static chess.solver.ChessPiece.WHITE_KING;
 import static chess.solver.ChessPiece.WHITE_KNIGHT;
 import static chess.solver.ChessPiece.WHITE_PAWN;
 import static chess.solver.ChessPiece.WHITE_QUEEN;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
@@ -21,7 +24,7 @@ public class ChessStateTest {
 
     @Test
     public void test_getAvailableWhiteChessMoves_fromInitialState() {
-        ArrayList<ChessMove> chessMoves = ChessState.initialChessState().getAvailableWhiteChessMoves();
+        List<ChessMove> chessMoves = ChessState.initialChessState().getAvailableWhiteChessMoves();
 
         ArrayList<ChessMove> expectedMoves = new ArrayList<>();
         expectedMoves.add(new ChessMove(WHITE_PAWN, new ChessSquare('a', 2), new ChessSquare('a', 4)));
@@ -51,7 +54,7 @@ public class ChessStateTest {
 
     @Test
     public void test_getAvailableBlackChessMoves_fromInitialState() {
-        ArrayList<ChessMove> chessMoves = ChessState.initialChessState().getAvailableBlackChessMoves();
+        List<ChessMove> chessMoves = ChessState.initialChessState().getAvailableBlackChessMoves();
 
         ArrayList<ChessMove> expectedMoves = new ArrayList<>();
         expectedMoves.add(new ChessMove(BLACK_PAWN, new ChessSquare('a', 7), new ChessSquare('a', 5)));
@@ -92,7 +95,7 @@ public class ChessStateTest {
 
         ChessState chessState = ChessState.fromChessMoves(setupMoves);
         System.err.println(chessState);
-        ArrayList<ChessMove> chessMoves = chessState.getAvailableWhiteChessMoves();
+        List<ChessMove> chessMoves = chessState.getAvailableWhiteChessMoves();
 
         ArrayList<ChessMove> expectedMoves = new ArrayList<>();
         expectedMoves.add(new ChessMove(WHITE_PAWN, new ChessSquare('d', 4), new ChessSquare('e', 5)));
@@ -125,6 +128,34 @@ public class ChessStateTest {
         expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('a', 6)));
         expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('b', 6)));
         expectedMoves.add(new ChessMove(WHITE_KING, new ChessSquare('b', 7), new ChessSquare('c', 6)));
+
+        Assertions.assertThat(chessMoves).hasSameElementsAs(expectedMoves);
+    }
+
+    @Test
+    public void test_kingInCheck() {
+        ArrayList<ChessMove> setupMoves = new ArrayList<>();
+        setupMoves.add(new ChessMove(WHITE_PAWN, null, new ChessSquare('d', 4)));
+        setupMoves.add(new ChessMove(WHITE_PAWN, null, new ChessSquare('c', 3)));
+        setupMoves.add(new ChessMove(BLACK_KING, null, new ChessSquare('e', 5)));
+        setupMoves.add(new ChessMove(BLACK_ROOK, null, new ChessSquare('h', 4)));
+        setupMoves.add(new ChessMove(BLACK_PAWN, null, new ChessSquare('a', 8)));
+        setupMoves.add(new ChessMove(WHITE_KING, null, new ChessSquare('a', 1)));
+
+        ChessState chessState = ChessState.fromChessMoves(setupMoves);
+        System.err.println(chessState);
+        List<ChessMove> chessMoves = chessState.getAvailableBlackChessMoves();
+
+        // No black pawn moves
+        ArrayList<ChessMove> expectedMoves = new ArrayList<>();
+        expectedMoves.add(new ChessMove(BLACK_KING, new ChessSquare('e', 5), new ChessSquare('e', 4)));
+        expectedMoves.add(new ChessMove(BLACK_KING, new ChessSquare('e', 5), new ChessSquare('f', 4)));
+        expectedMoves.add(new ChessMove(BLACK_KING, new ChessSquare('e', 5), new ChessSquare('f', 5)));
+        expectedMoves.add(new ChessMove(BLACK_KING, new ChessSquare('e', 5), new ChessSquare('f', 6)));
+        expectedMoves.add(new ChessMove(BLACK_KING, new ChessSquare('e', 5), new ChessSquare('e', 6)));
+        expectedMoves.add(new ChessMove(BLACK_KING, new ChessSquare('e', 5), new ChessSquare('d', 6)));
+        expectedMoves.add(new ChessMove(BLACK_KING, new ChessSquare('e', 5), new ChessSquare('d', 5)));
+        expectedMoves.add(new ChessMove(BLACK_ROOK, new ChessSquare('h', 4), new ChessSquare('d', 4)));
 
         Assertions.assertThat(chessMoves).hasSameElementsAs(expectedMoves);
     }

@@ -1,6 +1,7 @@
 package chess.solver;
 
-import static chess.solver.Inputs.PRINT_PRETTY_COORDINATES;
+import static chess.solver.ChessPiece.BLACK_KING;
+import static chess.solver.ChessPiece.WHITE_KING;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -100,4 +101,16 @@ public final class ChessBoard {
         return isAvailable(chessSquare) || isTarget(chessSquare, isWhite);
     }
 
+    public ChessSquare getKingSquare(boolean isWhite) {
+        ChessPiece king = isWhite ? WHITE_KING : BLACK_KING;
+        for (int i = 0; i < Constants.CHESS_BOARD_SIZE; i++) {
+            for (int j = 0; j < Constants.CHESS_BOARD_SIZE; j++) {
+                if (chessBoard[i][j] == king) {
+                    return new ChessSquare(i, j);
+                }
+            }
+        }    
+      throw new AssertionError(isWhite ? "Failed to find the white king." : "Failed to find the black king.");
+    }
+    
 }

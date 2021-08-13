@@ -103,11 +103,11 @@ public final class ChessState {
         return new ChessState(chessBoard, new ArrayList<ChessPiece>(), new ArrayList<ChessPiece>());
     }
 
-    public ArrayList<ChessMove> getAvailableWhiteChessMoves() {
+    public List<ChessMove> getAvailableWhiteChessMoves() {
         return getAvailableWhiteChessMoves(false);
     }
 
-    public ArrayList<ChessMove> getAvailableWhiteChessMoves(boolean captureMoves) {
+    public List<ChessMove> getAvailableWhiteChessMoves(boolean captureMoves) {
         ArrayList<ChessMove> chessMoves = new ArrayList<>();
         for (ChessSquare fromSquare : chessBoard.getWhitePieceLocations()) {
             switch (chessBoard.peek(fromSquare).get()) {
@@ -138,14 +138,14 @@ public final class ChessState {
                     throw new AssertionError("invalid piece location.");
             }
         }
-        return chessMoves;
+        return captureMoves ? chessMoves : filterMovesSafeForKing(chessMoves, true);
     }
 
-    public ArrayList<ChessMove> getAvailableBlackChessMoves() {
+    public List<ChessMove> getAvailableBlackChessMoves() {
         return getAvailableBlackChessMoves(false);
     }
 
-    public ArrayList<ChessMove> getAvailableBlackChessMoves(boolean captureMoves) {
+    public List<ChessMove> getAvailableBlackChessMoves(boolean captureMoves) {
         ArrayList<ChessMove> chessMoves = new ArrayList<>();
         for (ChessSquare fromSquare : chessBoard.getBlackPieceLocations()) {
             switch (chessBoard.peek(fromSquare).get()) {
@@ -176,7 +176,14 @@ public final class ChessState {
                     break;
             }
         }
-        return chessMoves;
+        return captureMoves ? chessMoves : filterMovesSafeForKing(chessMoves, false);
+    }
+
+    private List<ChessMove> filterMovesSafeForKing(ArrayList<ChessMove> chessMoves, boolean isWhite) {
+        return chessMoves.stream().filter(move -> {
+            ChessState nextState = ChessState.fromParentChessState(this, move);
+            return !nextState.isKingInCheck(isWhite);
+        }).collect(Collectors.toList());
     }
 
     public ChessBoard getChessBoard() {
@@ -388,9 +395,7 @@ public final class ChessState {
         possibleSquares.add(new ChessSquare(rowId + 1, columnId - 1));
         possibleSquares.add(new ChessSquare(rowId - 1, columnId + 1));
         possibleSquares.add(new ChessSquare(rowId - 1, columnId - 1));
-        List<ChessSquare> safeSquares = captureMoves ? possibleSquares
-                : possibleSquares.stream().filter(square -> !isTargeted(square, isWhite)).collect(Collectors.toList());
-        return filterPossibleChessSquares(safeSquares, fromSquare, chessPiece, isWhite);
+        return filterPossibleChessSquares(possibleSquares, fromSquare, chessPiece, isWhite);
     }
 
     private List<ChessMove> filterPossibleChessSquares(List<ChessSquare> possibleSquares, ChessSquare fromSquare,
@@ -407,9 +412,17 @@ public final class ChessState {
      * Returns true if the square is targeted by a piece of the other color.
      */
     public boolean isTargeted(ChessSquare chessSquare, boolean isWhite) {
-        ArrayList<ChessMove> allPosibleOpponentMoves = isWhite ? getAvailableBlackChessMoves(true)
+        List<ChessMove> allPosibleOpponentMoves = isWhite ? getAvailableBlackChessMoves(true)
                 : getAvailableWhiteChessMoves(true);
         return allPosibleOpponentMoves.stream().anyMatch(move -> move.getToChessSquare().equals(chessSquare));
+    }
+
+    public boolean isKingInCheck(boolean isWhite) {
+      return isKingInCheck(chessBoard.getKingSquare(isWhite), isWhite);
+    }
+
+    public boolean isKingInCheck(ChessSquare chessSquare, boolean isWhite) {
+      return isTargeted(chessSquare, isWhite);
     }
 
     private ChessState(ChessBoard chessBoard, ArrayList<ChessPiece> whiteCapturedPieces,
