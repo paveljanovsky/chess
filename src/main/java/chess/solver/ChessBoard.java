@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public final class ChessBoard {
+
+    private static final String WHITE_SQUARE = "\u25A1";
+    private static final String BLACK_SQUARE = "\u25A0";
+
     ChessPiece[][] chessBoard;
 
     public ChessBoard() {
@@ -47,8 +51,7 @@ public final class ChessBoard {
                 if (chessBoard[i][j] != null) {
                     sb.append(chessBoard[i][j].getUnicode() + " ");
                 } else {
-                    sb.append("o ");
-
+                    sb.append((i + j) % 2 == 0 ? BLACK_SQUARE : WHITE_SQUARE).append(" ");
                 }
             }
             sb.append(" " + verticalTick + "\n");

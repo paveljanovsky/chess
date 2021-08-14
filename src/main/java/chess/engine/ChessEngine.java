@@ -23,23 +23,25 @@ public class ChessEngine {
         ChessState currentChessState = ChessState.initialChessState();
         if (playerIsWhite) {
             chessDisplay.displayChessState(currentChessState);
-            currentChessState = playerMove(currentChessState);
+            currentChessState = playerMove(currentChessState, playerIsWhite);
         }
         // TODO add while condition
         while (true) {
             chessDisplay.displayChessState(currentChessState);
             currentChessState = aiMove(currentChessState, playerIsWhite);
             chessDisplay.displayChessState(currentChessState);
-            currentChessState = playerMove(currentChessState);
+            currentChessState = playerMove(currentChessState, playerIsWhite);
         }
     }
 
-    private ChessState playerMove(ChessState currentChessState) {
+    private ChessState playerMove(ChessState currentChessState, boolean playerIsWhite) {
         ChessMove playerMove = playerInput.getValidMove(currentChessState);
+        chessDisplay.announceNextMove(playerIsWhite, true);
         return ChessState.fromParentChessState(currentChessState, playerMove);
     }
 
     private ChessState aiMove(ChessState currentChessState, boolean playerIsWhite) {
+        chessDisplay.announceNextMove(!playerIsWhite, false);
         ChessMove aiMove = chessMovePicker.pickNextChessMove(currentChessState, !playerIsWhite);
         return ChessState.fromParentChessState(currentChessState, aiMove);
     }

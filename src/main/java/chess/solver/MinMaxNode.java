@@ -44,7 +44,7 @@ public class MinMaxNode {
             Map<MinMaxNode, ChessMove> children = availableMoves.stream()
             .collect(Collectors.toMap(move -> 
               new MinMaxNode(ChessState.fromParentChessState(chessState, move), 
-                             !isMaxNode, !isWhite, depth + 1, chessStateEvaluator), 
+                             !isMaxNode, !isWhite, isMaxNode ? depth : depth + 1, chessStateEvaluator), 
               Function.identity()));
                    // .map(move -> ChessState.fromParentChessState(chessState, move))
                     //.map(chessState -> new MinMaxNode(chessState, !isMaxNode, !isWhite, depth + 1, chessStateEvaluator))

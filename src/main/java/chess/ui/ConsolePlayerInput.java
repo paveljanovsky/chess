@@ -32,10 +32,10 @@ public class ConsolePlayerInput implements PlayerInput {
             System.out.println("Select color: (w)hite, (b)lack, (r)andom:");
             input = in.nextLine();
         }
-        if (input == "r") {
+        if (input.equals("r")) {
             return new Random().nextBoolean();
         }
-        return input == "w";
+        return input.equals("w");
     }
     
 }
