@@ -4,20 +4,23 @@ import java.util.Random;
 import java.util.Scanner;
 
 import chess.solver.ChessMove;
+import chess.solver.ChessState;
 import chess.solver.InvalidChessMoveException;
 
 public class ConsolePlayerInput implements PlayerInput {
 
     private final Scanner in = new Scanner(System.in);
+    private final PlayerMoveValidator playerMoveValidator = new PlayerMoveValidator();
+
 
     @Override
-    public ChessMove getMove() {
+    public ChessMove getValidMove(ChessState currentState) {
         while (true) {
             System.out.println("Enter next move:");
             try {
-                return new ChessMove(in.nextLine());
+                return playerMoveValidator.validate(new ChessMove(in.nextLine()), currentState);
             } catch (InvalidChessMoveException e) {
-                System.out.println("Invalid chess move");
+                System.out.println(e.getMessage());
             }
         }
     }

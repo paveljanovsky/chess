@@ -3,6 +3,7 @@ package chess.solver;
 import static chess.solver.Inputs.PRINT_MOVE_START;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 public final class ChessMove {
 
@@ -17,18 +18,17 @@ public final class ChessMove {
     }
 
     public ChessMove(String stringRepresentation) throws InvalidChessMoveException {
-        String chessPieceCode = stringRepresentation.substring(0, 2);
-        String fromChessSquareString = stringRepresentation.substring(2, 4);
-        String toChessSquareString = stringRepresentation.substring(4, 6);
-
-        this.chessPiece = Arrays.asList(ChessPiece.values()).stream()
-                .findFirst(value -> value.getCode().equals(chessPieceCode)).get();
-        this.fromChessSquare = 
-          new ChessSquare(stringRepresentation.charAt(2), 
-              Integer.parseInt(stringRepresentation.substring(3, 4)));
-        this.toChessSquare = 
-              new ChessSquare(stringRepresentation.charAt(4), 
-                  Integer.parseInt(stringRepresentation.substring(5, 6)));
+        try {
+            String chessPieceCode = stringRepresentation.substring(0, 2);
+            this.chessPiece = Arrays.asList(ChessPiece.values()).stream()
+                    .filter(value -> value.getCode().equals(chessPieceCode)).findFirst().get();
+            this.fromChessSquare = new ChessSquare(stringRepresentation.charAt(2),
+                    Integer.parseInt(stringRepresentation.substring(3, 4)));
+            this.toChessSquare = new ChessSquare(stringRepresentation.charAt(4),
+                    Integer.parseInt(stringRepresentation.substring(5, 6)));
+        } catch (IndexOutOfBoundsException | NoSuchElementException | NumberFormatException e) {
+            throw new InvalidChessMoveException("Can't parse chess move: " + e);
+        }
     }
 
     public ChessPiece getChessPiece() {

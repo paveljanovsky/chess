@@ -26,6 +26,9 @@ public final class ChessState {
     final ArrayList<ChessPiece> whiteCapturedPieces;
     final ArrayList<ChessPiece> blackCapturedPieces;
 
+    ChessState parentChessState;
+    ChessMove parentChessMove;
+
     public static ChessState initialChessState() {
         ChessBoard chessBoard = new ChessBoard();
         for (int i = 0; i < CHESS_BOARD_SIZE; i++) {
@@ -196,6 +199,22 @@ public final class ChessState {
 
     public ArrayList<ChessPiece> getBlackCapturedPieces() {
         return blackCapturedPieces;
+    }
+
+    public void setParentChessState(ChessState parentChessState) {
+        this.parentChessState = parentChessState;
+    }
+
+    public ChessState getParentChessState() {
+        return parentChessState;
+    }
+
+    public void setParentChessMove(ChessMove parentChessMove) {
+        this.parentChessMove = parentChessMove;
+    }
+
+    public ChessMove getParentChessMove() {
+        return parentChessMove;
     }
 
     public String toString() {
