@@ -4,15 +4,27 @@ import static chess.solver.Inputs.PLANNING_DEPTH;
 
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 public class MinMaxNode {
+
+    private static final Comparator<MinMaxNode> CHILD_COMPARATOR 
+      = Comparator.comparing(MinMaxNode::getValue);
+
 
     private final ChessState chessState;
     private final boolean isWhite;
     private final boolean isMaxNode;
     private final int depth;
     private final ChessStateEvaluator chessStateEvaluator;
+
+    private Double value;
+    private MinMaxNode bestChild; // TODO do we need this?
+    private ChessMove moveToBestChild;
 
     public MinMaxNode(ChessState chessState, boolean isMaxNode, boolean isWhite, int depth,
             ChessStateEvaluator chessStateEvaluator) {
@@ -23,20 +35,47 @@ public class MinMaxNode {
         this.chessStateEvaluator = chessStateEvaluator;
     }
 
-    public double evaluate() {
+    public void evaluate() {
         if (depth == PLANNING_DEPTH) {
-            return chessStateEvaluator.evaluateChessState(chessState, isWhite);
+            value = chessStateEvaluator.evaluateChessState(chessState, isWhite);
         } else {
             List<ChessMove> availableMoves = isWhite ? chessState.getAvailableWhiteChessMoves()
                     : chessState.getAvailableBlackChessMoves();
-            List<MinMaxNode> children = availableMoves.stream()
-                    .map(move -> ChessState.fromParentChessState(chessState, move))
-                    .map(chessState -> new MinMaxNode(chessState, !isMaxNode, !isWhite, depth + 1, chessStateEvaluator))
-                    .collect(Collectors.toList());
-            DoubleStream childrenValues = children.stream().map(node -> node.evaluate())
-                    .mapToDouble(Double::doubleValue);
-            return isMaxNode ? childrenValues.max().getAsDouble() : childrenValues.min().getAsDouble();
+            Map<MinMaxNode, ChessMove> children = availableMoves.stream()
+            .collect(Collectors.toMap(move -> 
+              new MinMaxNode(ChessState.fromParentChessState(chessState, move), 
+                             !isMaxNode, !isWhite, depth + 1, chessStateEvaluator), 
+              Function.identity()));
+                   // .map(move -> ChessState.fromParentChessState(chessState, move))
+                    //.map(chessState -> new MinMaxNode(chessState, !isMaxNode, !isWhite, depth + 1, chessStateEvaluator))
+                    //.collect(Collectors.toList());
+            children.keySet().forEach(MinMaxNode::evaluate);
+            bestChild = isMaxNode ? children.keySet().stream().max(CHILD_COMPARATOR).get() 
+              : children.keySet().stream().min(CHILD_COMPARATOR).get();
+            value = bestChild.getValue();
+            moveToBestChild = children.get(bestChild);
         }
+    }
+
+    public double getValue() {
+        if (value == null) {
+            throw new IllegalStateException("Getting value before the node was evaluated.");
+        }
+        return value;
+    }
+
+    public MinMaxNode getBestChild() {
+        if (bestChild == null) {
+            throw new IllegalStateException("Getting bestChild before the node was evaluated.");
+        }
+        return bestChild;
+    }
+
+    public ChessMove getMoveToBestChild() {
+        if (moveToBestChild == null) {
+            throw new IllegalStateException("Getting moveToBestChild before the node was evaluated.");
+        }
+        return moveToBestChild;
     }
 
 }

@@ -3,7 +3,7 @@ package chess.solver;
 import java.util.List;
 import java.util.Map;
 
-public class LivePiecesChessStateEvaluator implements ChessStateEvaluator {
+public class CapturedPiecesChessStateEvaluator implements ChessStateEvaluator {
 
     private final Map<ChessPiece, Double> chessPieceValues = Map.of(
         ChessPiece.WHITE_PAWN, 1.0,
