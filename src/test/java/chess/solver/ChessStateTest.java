@@ -2,14 +2,18 @@ package chess.solver;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static chess.solver.ChessPiece.BLACK_BISHOP;
 import static chess.solver.ChessPiece.BLACK_KING;
 import static chess.solver.ChessPiece.BLACK_KNIGHT;
 import static chess.solver.ChessPiece.BLACK_PAWN;
+import static chess.solver.ChessPiece.BLACK_QUEEN;
 import static chess.solver.ChessPiece.BLACK_ROOK;
+import static chess.solver.ChessPiece.WHITE_BISHOP;
 import static chess.solver.ChessPiece.WHITE_KING;
 import static chess.solver.ChessPiece.WHITE_KNIGHT;
 import static chess.solver.ChessPiece.WHITE_PAWN;
 import static chess.solver.ChessPiece.WHITE_QUEEN;
+import static chess.solver.ChessPiece.WHITE_ROOK;
 
 import java.util.ArrayList;
 import java.util.List;

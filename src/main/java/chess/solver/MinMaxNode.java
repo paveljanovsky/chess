@@ -49,6 +49,11 @@ public class MinMaxNode {
                    // .map(move -> ChessState.fromParentChessState(chessState, move))
                     //.map(chessState -> new MinMaxNode(chessState, !isMaxNode, !isWhite, depth + 1, chessStateEvaluator))
                     //.collect(Collectors.toList());
+            if (children.isEmpty()) {
+                // TODO handle check, checkmate, stalemate
+                // System.err.println(chessState);
+                // System.out.println("DEBUG EMPTY CHILDREN");
+            }
             children.keySet().forEach(MinMaxNode::evaluate);
             bestChild = isMaxNode ? children.keySet().stream().max(CHILD_COMPARATOR).get() 
               : children.keySet().stream().min(CHILD_COMPARATOR).get();
